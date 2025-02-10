@@ -1,0 +1,97 @@
+<html>
+    <style>
+        body {
+            height: 100vh;
+            width: 100vw;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        .form-wrapper {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .input-wrapper {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            background-color: white;
+            border: rgb(168, 168, 168) 0.5px solid;
+            padding: 20px 40px;
+            width: 30rem;
+            border-radius: 7px;
+            /* min-height: 30rem; */
+        }
+        .input-wrapper input {
+            margin-top: 10px;
+            margin-bottom: 10px;
+
+            padding: 10px;
+            border: 1px solid rgb(168, 168, 168);
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: rgb(0, 0, 0);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
+    <body>
+        <div class="form-wrapper">
+            <div class="input-wrapper">
+                <h1>Test the AI</h1>
+                <input type="file" id="file" placholder="image here" />
+                <button onclick="submit()">submit</button>
+                <div id="res"></div>
+            </div>
+        </div>
+        <script>
+            function submit() {
+                const file = document.getElementById('file').files[0];
+                // to blob
+                if (!file) {
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    console.log(reader.result)
+                fetch('/model', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({file: reader.result.split(',')[1]})
+                })
+                .then(res => res.json())
+                .then(data => {
+                    labels_map = {
+                        0: "T-Shirt",
+                        1: "Trouser",
+                        2: "Pullover",
+                        3: "Dress",
+                        4: "Coat",
+                        5: "Sandal",
+                        6: "Shirt",
+                        7: "Sneaker",
+                        8: "Bag",
+                        9: "Ankle Boot",
+                    }
+                    console.log(data)
+                    document.getElementById('res').innerHTML = "I see a " + labels_map[data.prediction];
+                })
+                .catch(err => {
+                    document.getElementById('res').innerHTML = JSON.stringify(err);
+                });
+                    // Logs data:<type>;base64,wL2dvYWwgbW9yZ...
+                };
+                reader.readAsDataURL(file);
+            }
+        </script>
+    </body>
+</html>

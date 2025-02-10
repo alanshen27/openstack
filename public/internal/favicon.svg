@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="103" height="103" viewBox="0 0 103 103" fill="none">
+    <!-- bg-primary-200 -->
+    <rect width="51.881" height="51.881" rx="5.19066" transform="matrix(-0.763127 0.646249 -0.807963 -0.589233 92.6436 60.5887)" fill="#A0C8FF"/> 
+    <!-- bg-primary-400 -->
+    <rect width="51.881" height="51.881" rx="5.19066" transform="matrix(-0.763127 0.646249 -0.807963 -0.589233 92.2858 50.7291)" fill="#4A94FF"/>
+    <!-- bg-primary-500 -->
+    <rect width="51.881" height="51.881" rx="5.19066" transform="matrix(-0.763127 0.646249 -0.807963 -0.589233 91.8551 38.861)" fill="#007BFF"/>
+</svg>

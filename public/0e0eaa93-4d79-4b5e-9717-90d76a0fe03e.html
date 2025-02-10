@@ -1,0 +1,140 @@
+<html>
+    <style>
+        body {
+            height: 100vh;
+            width: 100vw;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        .form-wrapper {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .input-wrapper {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            background-color: white;
+            border: rgb(168, 168, 168) 0.5px solid;
+            padding: 20px 40px;
+            width: 30rem;
+            border-radius: 7px;
+            /* min-height: 30rem; */
+        }
+        .input-wrapper input {
+            margin-top: 10px;
+            margin-bottom: 10px;
+
+            padding: 10px;
+            border: 1px solid rgb(168, 168, 168);
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: rgb(0, 0, 0);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .none {
+            display: none;
+        }
+    </style>
+    <body>
+        <div class="form-wrapper">
+            <div class="input-wrapper">
+                <h1>Test the AI</h1>
+                <video id="video">Video stream not available.</video>
+                <img src="" id="photo" class="none"/>
+                <canvas id="canvas" class="none"></canvas>
+                <div style="display: flex; flex-direction: row; border: rgb(168, 168, 168) 0.5px solid; padding: 10px 20px; border-radius: 5px">
+                    <div style="font-weight: bold;">Robot says:</div><div id="res" style="margin-left: 5px; font-family: 'Courier New', Courier, monospace;"></div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const width = 200
+            const height = 200
+
+            const video = document.getElementById('video');
+            const photo = document.getElementById('photo');
+            const canvas = document.getElementById('canvas');
+
+            navigator.mediaDevices
+            .getUserMedia({ video: true, audio: false })
+            .then((stream) => {
+                video.srcObject = stream;
+                video.setAttribute("width", 300)
+                video.setAttribute("height", 300)
+
+                canvas.setAttribute("width", width);
+                canvas.setAttribute("height", height);
+
+                video.play();
+            })
+            .catch((err) => {
+                console.error(`An error occurred: ${err}`);
+            });
+            
+
+            function takepicture() {
+                const context = canvas.getContext("2d");
+                if (width && height) {
+                    canvas.width = width;
+                    canvas.height = height;
+                    context.drawImage(video, 0, 0, width, height);
+
+                    const data = canvas.toDataURL("image/png");
+                    photo.setAttribute("src", data);
+                    return data
+                } else {
+                    clearphoto();
+                }
+            }
+
+            setInterval(() => {
+                const pic = takepicture()
+                if (!pic) {
+                    return;
+                }
+                submit(pic)
+            }, 1000)
+
+
+
+            function submit(base64) {
+                console.log(base64)
+                fetch('/model', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({file: base64.split(',')[1]})
+                })
+                .then(res => res.json())
+                .then(data => {
+                    labels_map = {
+                        0: 'Cigar',
+                        1: 'Cigarette',
+                        2: 'Cigarette and Package',
+                        3: 'E-Cigarette',
+                        4: 'Package',
+                        5: 'Other'
+
+                    }
+                    console.log(data)
+                    document.getElementById('res').innerHTML = "I see a " + labels_map[data.prediction];
+                })
+                .catch(err => {
+                    document.getElementById('res').innerHTML = JSON.stringify(err);
+                });
+                    // Logs data:<type>;base64,wL2dvYWwgbW9yZ...
+                };
+        </script>
+    </body>
+</html>

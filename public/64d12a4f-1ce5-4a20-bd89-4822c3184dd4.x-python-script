@@ -1,0 +1,39 @@
+import torch
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+from torchvision.transforms import Compose
+
+from data.main import data_generation
+
+from model.main import getModel, train, loss_fn, getDevice
+
+train_dataloader,test_dataloader = data_generation(train_dir = "src/product/train",val_dir = "src/product/val", batch_size=48)
+    
+model = getModel()
+device = getDevice()
+
+def test(dataloader, model):
+    size = len(dataloader.dataset)
+    model.eval()
+    test_loss, correct = 0, 0
+
+
+    with torch.no_grad():
+        for X, y in dataloader:
+            X, y = X.to(device, dtype=torch.float32), y.to(device, dtype=torch.float32)
+            
+            pred = model(X)
+            test_loss += loss_fn(pred, y).item()
+            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+        
+        print (f"Test Error: \n Accuracy: {(100*correct/size):>0.1f}%, Avg loss: {test_loss/size:>8f} \n")
+epochs = 50
+
+for t in range(epochs):
+    print(f"Epoch {t+1}\n-------------------------------")
+    train(train_dataloader, model, loss_fn, device)
+
+torch.save(model.state_dict(), "src/model/train.pth")
+print("Saved to src/model/train.pth")
+
+test(test_dataloader, model)

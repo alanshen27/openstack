@@ -1,0 +1,68 @@
+from flask import Flask
+from flask import request
+from flask import jsonify
+from flask import send_file
+import torch
+from torchvision import transforms
+import numpy
+
+from matplotlib import pyplot as plt
+
+import base64
+from io import BytesIO
+from PIL import Image
+from model.main import getModel
+
+app = Flask(__name__)
+
+_model: torch.nn = getModel()
+
+def testImage(model: torch.nn, image):
+    model.eval()
+    with torch.no_grad():
+        pred = model(image)
+        return pred.argmax(1)
+
+@app.route("/", methods=['GET'])
+def hello_world():
+    return send_file('public/index.html')
+
+@app.route("/model", methods=['POST'])
+def test():
+    if not request.method == 'POST':
+        return jsonify({"error": "Invalid request method"})
+    
+    image = request.json['file']
+
+    bytes = base64.b64decode(str(image))
+
+    imgdata = BytesIO(bytes)
+    
+    pil = Image.open(imgdata).convert('RGB')
+
+    pil.save('a.jpg')
+    transform = transforms.Compose([transforms.Resize((200, 200)),
+                                transforms.ToTensor(),
+                                transforms.Normalize([0.485, 0.456, 0.406],
+                                                     [0.229, 0.224, 0.225])])
+    tensor = transform(pil)
+    tensor = tensor.unsqueeze(0)
+    tensor = tensor.to(dtype=torch.float32)
+
+    print(tensor.shape)
+    print(tensor.dtype)
+
+    tensor = tensor.to('mps')
+    
+    prediction = testImage(_model, tensor).cpu().detach().numpy().tolist()[0]
+
+    print(prediction)
+
+    print(train_datasets.class_to_idx)
+
+    return jsonify({'prediction': prediction })
+
+@app.route("/test", methods=['GET'])
+def testRoute():
+    return send_file('public/index2.html')
+app.run()
